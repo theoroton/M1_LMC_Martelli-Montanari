@@ -35,7 +35,22 @@ regle(E, expand) :-
     compound(D),
     not(occur_check(G, D)).
 
-%occur_check(G, D) :-.
+occur_check(V, T) :-
+    var(T),!,
+    V == T.
+
+occur_check(V, T) :-
+    compound(T),
+    functor(T, _, N),
+    occur_check(N, V, T).
+
+occur_check(0,_,_) :- !.
+
+occur_check(N, V, T) :-
+    arg(N, T, Arg),
+    not(occur_check(V, Arg)),
+    N2 is N-1,!,
+    occur_check(N2, V, T).
 
 regle(E, check) :-
     split(E, G, D),
