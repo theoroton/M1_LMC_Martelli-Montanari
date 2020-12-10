@@ -38,6 +38,15 @@ split(E, G, D) :-
 % Détermine la règle de transformation R qui s'applique à l'équation E.
 
 /*
+ * Règle clean : renvoie true si X et T sont égaux.
+ * E : équation donnée.
+ * R : règle clean.
+ */
+regle(E, clean) :-
+    split(E, X, T),
+    X == T, !.
+
+/*
  * Règle rename : renvoie true si X et T sont des variables.
  * E : équation donnée.
  * R : règle rename.
@@ -137,15 +146,6 @@ regle(E, clash) :-
     NameG \== NameD, !.
 
 /*
- * Règle clean : renvoie true si X et T sont égaux.
- * E : équation donnée.
- * R : règle clean.
- */
-regle(E, clean) :-
-    split(E, X, T),
-    X == T, !.
-
-/*
  * Règle fail : renvoie true si aucune autre règle n'a pu être
  * appliquée.
  * R : règle fail.
@@ -213,6 +213,14 @@ occur_check_args(V, T, NbArgs) :-
 % Prédicat reduit(R, E, P, Q) :
 % Transforme le système d'équations P en le système d'équations Q par
 % application de la règle de transformation R à l'équation E.
+
+/*
+ * Retourne le système P sans l'équation E.
+ * R : règle clean.
+ * P : reste des équations de P.
+ * Q : système P sans l'équation E après application de la règle R.
+ */
+reduit(clean, _, P, P) :- !.
 
 /*
  * Substitue X part T, et renvoie le système P sans l'équation traitée
@@ -288,14 +296,6 @@ reduit(decompose, E, P, Q) :-
  * Q : bottom.
  */
 reduit(clash, _, _, bottom) :- !.
-
-/*
- * Retourne le système P sans l'équation E.
- * R : règle clean.
- * P : reste des équations de P.
- * Q : système P sans l'équation E après application de la règle R.
- */
-reduit(clean, _, P, P) :- !.
 
 /*
  * Retourne bottom si la règle fail est appliquée.
