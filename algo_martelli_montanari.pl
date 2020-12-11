@@ -601,3 +601,97 @@ trace_unif(P, S) :-
     set_echo,
     echo("\n"),
     unifie(P,S).
+
+
+% ------------------------------------------------------------------------
+% Interface en lignes de commande pour exécuter l'algorithme.
+
+/*
+ * Demande à l'utilisateur d'entrer un système d'équations, de
+ * choisir la stratégie à utiliser et s'il activer la trace ou
+ * non.
+ */
+algorithme_martelli() :-
+    writeln("=== Algorithme d'unification de Martelli-Montanari ==="), nl,
+
+    systeme_equations(P), nl,
+    strategie(S), nl,
+    affichage(A), nl,
+
+    writeln("=== Début de l'algorithme ==="), nl,
+    write("Système : "), writeln(P),
+
+    (   A == 1
+    ->  trace_unif(P, S)
+    ;   unif(P, S)).
+
+
+/*
+ * Demande à l'utilisateur le système d'équations qu'il souhaite
+ * unifier.
+ * P : système d'équations à unifier.
+ */
+systeme_equations(P) :-
+    writeln("Entrez le système d'équations à unifier :"),
+    writeln("(Système de la forme [S1 ?= T1, ... ,SN ?= TN].)"),
+    read(P),
+    is_list(P),
+    verifier_equations(P).
+
+
+% Vérifie le système d'équations
+
+/*
+ * Si le système est vide, alors on a atteint la fin.
+ * P : système d'équations à vérifier.
+ */
+verifier_equations([]).
+
+/*
+ * Si une équation n'est pas de la forme Sn ?= Tn alors le
+ * système n'est pas bon.
+ * P : système d'équations à vérifier.
+ */
+verifier_equations([E|L]) :-
+    split(E, S, T),
+    (   E == S ?= T
+    ->  verifier_equations(L)
+    ;   write("Système incorrect"), fail, !).
+
+
+/*
+ * Demande à l'utilisateur la stratégie qu'il souhaite utiliser.
+ * Si l'entrée donnée n'est pas bonne, alors il y a une erreur.
+ * S : stratégie à utiliser.
+ */
+strategie(S) :-
+    writeln('Ecrivez le numéro de strategie à utiliser :'),
+    writeln('1: choix premier'),
+    writeln('2: choix pondere'),
+    writeln('3: choix dernier'),
+    read(N),
+    (   integer(N)
+    -> ( N >= 1, 3 >= N
+       ->  strat(N, S)
+       ;   write("Stratégie incorrecte"), fail, !)
+    ;   write("Ce n'est pas un entier"), fail, !).
+
+% Numéro des stratégies.
+strat(1, choix_premier).
+strat(2, choix_pondere).
+strat(3, choix_dernier).
+
+
+/*
+ * Demande à l'utilisateur s'il veut activer la trace des règles.
+ * Si l'entrée donnée n'est pas bonne, alors il y a une erreur.
+ * A : affichage à utiliser.
+ */
+affichage(A) :-
+    writeln("Voulez vous activer la trace des étapes ? (o/n) :"),
+    writeln('1: Oui'),
+    writeln('2: Non'),
+    read(A),
+    (   integer(A), A >= 1, 2 >= A
+    ->  !
+    ;   write("Réponse incorrecte"), fail, !).
