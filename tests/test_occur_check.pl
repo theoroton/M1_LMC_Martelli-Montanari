@@ -4,7 +4,7 @@ echo(_).
 echoNL(T) :- echo(T), nl.
 
 /*
- * Prédicat pour lancer tous les tests.
+ * Prédicat pour lancer tous les tests sur occur_check.
  * On exécute le prédicat occur_check(V,T) avec une variable
  * V et un terme composé T, et on regarde si le résultat
  * correspond à ce qu'on attends.

@@ -4,30 +4,31 @@ echo(_).
 echoNL(T) :- echo(T), nl.
 
 /*
- * Prédicat pour lancer tous les tests.
- * On exécute le prédicat règle(E,R) avec une équation E.
+ * Prédicat pour lancer tous les tests sur regle.
+ * On exécute le prédicat regle(E,R) avec une équation E.
  * On vérifie si la règle R trouvé correspond à celle
  * adéquate pour l'équation E.
+ * Si on arrive à FIN, les tests sont valides.
  */
 lancerTest_Regle() :-
     set_echo,
     echoNL("TEST PREDICAT REGLE :"), nl,
 
-    test_rename,
-    test_simplify,
-    test_expand,
-    test_check,
-    test_orient,
-    test_decompose,
-    test_clash,
-    test_clean,
-    test_fail,
+    test_regle_rename,
+    test_regle_simplify,
+    test_regle_expand,
+    test_regle_check,
+    test_regle_orient,
+    test_regle_decompose,
+    test_regle_clash,
+    test_regle_clean,
+    test_regle_fail,
 
     echoNL("FIN TEST PREDICAT REGLE").
 
 
 %Test de la règle rename.
-test_rename() :-
+test_regle_rename() :-
     echoNL("TEST RENAME :"),
 
     echoNL("X ?= Y"),
@@ -42,7 +43,7 @@ test_rename() :-
 
 
 %Test de la règle simplify.
-test_simplify() :-
+test_regle_simplify() :-
     echoNL("TEST SIMPLIFY :"),
 
     echoNL("X ?= a"),
@@ -57,7 +58,7 @@ test_simplify() :-
 
 
 %Test de la règle expand.
-test_expand() :-
+test_regle_expand() :-
     echoNL("TEST EXPAND :"),
 
     echoNL("X ?= f(Y)"),
@@ -80,14 +81,14 @@ test_expand() :-
     R == expand,
     echoNL(R), nl,
 
-    echoNL("X ?= f(g(h(Z, j(Y,W))))"),
-    regle(X ?= f(g(h(_Z, j(Y,_W)))), R),
+    echoNL("X ?= f(g(h(Z,j(Y,W))))"),
+    regle(X ?= f(g(h(_Z,j(Y,_W)))), R),
     R == expand,
     echoNL(R), nl, nl.
 
 
 %Test de la règle check.
-test_check() :-
+test_regle_check() :-
     echoNL("TEST CHECK :"),
 
     echoNL("X ?= f(X)"),
@@ -100,19 +101,19 @@ test_check() :-
     R == check,
     echoNL(R), nl,
 
-    echoNL("X ?= f(Y, g(Z,X))"),
-    regle(X ?= f(Y, g(Z,X)), R),
+    echoNL("X ?= f(Y,g(Z,X))"),
+    regle(X ?= f(Y,g(Z,X)), R),
     R == check,
     echoNL(R), nl,
 
-    echoNL("X ?= f(Y, g(Z, h(j(X))))"),
-    regle(X ?= f(Y, g(Z, h(j(X)))), R),
+    echoNL("X ?= f(Y,g(Z,h(j(X))))"),
+    regle(X ?= f(Y,g(Z,h(j(X)))), R),
     R == check,
     echoNL(R), nl, nl.
 
 
 %Test de la règle orient.
-test_orient() :-
+test_regle_orient() :-
     echoNL("TEST ORIENT :"),
 
     echoNL("a ?= X"),
@@ -127,7 +128,7 @@ test_orient() :-
 
 
 %Test de la règle decompose.
-test_decompose() :-
+test_regle_decompose() :-
     echoNL("TEST DECOMPOSE :"),
 
     echoNL("f(X) ?= f(Y)"),
@@ -140,19 +141,19 @@ test_decompose() :-
     R == decompose,
     echoNL(R), nl,
 
-    echoNL("f(X,Y) ?= f(g(Z), h(b))"),
-    regle(f(X,Y) ?= f(g(Z), h(b)), R),
+    echoNL("f(X,Y) ?= f(g(Z),h(b))"),
+    regle(f(X,Y) ?= f(g(Z),h(b)), R),
     R == decompose,
     echoNL(R), nl,
 
-    echoNL("f(X,Y,Z) ?= f(g(a), W, h(b))"),
-    regle(f(X,Y,Z) ?= f(g(a), _W, h(b)), R),
+    echoNL("f(X,Y,Z) ?= f(g(a),W,h(b))"),
+    regle(f(X,Y,Z) ?= f(g(a),_W,h(b)), R),
     R == decompose,
     echoNL(R), nl, nl.
 
 
 %Test de la règle clash.
-test_clash() :-
+test_regle_clash() :-
     echoNL("TEST CLASH :"),
 
     echoNL("f(X) ?= f(a,b)"),
@@ -177,7 +178,7 @@ test_clash() :-
 
 
 %test de la règle clean.
-test_clean() :-
+test_regle_clean() :-
     echoNL("TEST CLEAN :"),
 
     echoNL("X ?= X"),
@@ -202,7 +203,7 @@ test_clean() :-
 
 
 %Test de la règle fail.
-test_fail() :-
+test_regle_fail() :-
     echoNL("TEST FAIL :"),
 
     echoNL("a ?= b"),
