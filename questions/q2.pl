@@ -1,26 +1,6 @@
 % Définition de l'opérateur "?=".
 :- op(20,xfy,?=).
 
-% Prédicats d'affichage fournis
-
-% set_echo: ce prédicat active l'affichage par le prédicat echo.
-set_echo :- assert(echo_on).
-
-% clr_echo: ce prédicat inhibe l'affichage par le prédicat echo.
-clr_echo :- retractall(echo_on).
-
-% echo(T): si le flag echo_on est positionné, echo(T) affiche le terme T
-%          sinon, echo(T) réussit simplement en ne faisant rien.
-echo(T) :- echo_on, !, write(T).
-echo(_).
-
-/*
- * Prédicat echoNL : permet d'afficher le terme T est de faire
- * un retour à la ligne.
- * T : terme à afficher.
- */
-echoNL(T) :- echo(T), nl.
-
 /*
  * Prédicat split : permet de couper une équation E en 2 et de récupérer
  * la partie gauche G et la partie droite D.
