@@ -516,7 +516,7 @@ transformer_systeme([X|L], E, Q) :-
     (   X == E
     ->  Q = L, !
     ;   transformer_systeme(L, E, L2),
-        Q = [E|L2]).
+        Q = [X|L2]).
 
 % ------------------------------------------------------------------------
 % Prédicat unifie(P, S) :
