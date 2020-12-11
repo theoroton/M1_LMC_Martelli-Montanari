@@ -437,16 +437,18 @@ choix_premier([E|P], Q, E, R) :-
 %
 % Cas : liste est vide
 choix_pondere([], Q, _, _) :-
-    nl, echo(resultat: Q), !.
+    nl, writeln('resultat:'+ Q), !.
 
 % Choix dans la systeme P une equation E avec sa regle R qui a le poids
 % le plus eleve.
 % Ensuite on extrait de P cette equation E. pour donner le systeme Q
 choix_pondere(P, Q, E, R) :-
     poids_max(P, R, E),
-    extraire(P, E),
-    reduit(R, E, P, Q),
-    choix_pondere(P, Q, _, _).
+    extraire(P, E, P2),
+    write(system: [E|P]), nl,
+    write(R: E), nl,
+    reduit(R, E, P2, Q),
+    choix_pondere(P2, Q, _, _).
 
 % Trouver l'equation E avec la regle R du poids maximal
 % Cas : une element dans la liste et donc son poids est maximal
@@ -469,29 +471,30 @@ poids_max([X,Y|P], R, E) :-
      ).
 
 % le predicat qui donne le poids pour la regle R correspondant
-poids(R, _) :-
-    switch(R, [
-          expand: poids(R, 0),
-          decompose: poids(R, 1),
-          orient: poids(R, 2),
-          rename: poids(R, 3),
-          simplify: poids(R, 3),
-          clash: poids(R, 4),
-          check: poids(R, 4),
-           _: nl, echo('Regle n\'existe pas'), !]).
+poids(expand,0).
+poids(decompose,1).
+poids(orient,2).
+poids(rename,3).
+poids(simplify,3).
+poids(clash,4).
+poids(check,4).
 
 % Extraction d'element de la liste
 % Cas : liste est vide
-extraire([], _) :- !.
+extraire([], _, []) :- !.
 
 % Soit on trouve l'element X dans la liste, alors renvoit de la liste
 % sans X.
 % Soit la tete de la liste est differente de X, alors renvoit de la
 % liste avec element X, mais qui est place toute a la fin de la liste
-extraire([X|P], Y) :-
-    (   X == Y
-    ->  extraire(P, Y), !
-    ;   extraire([P|X], Y)), !.
+extraire([X|P], Y, P) :-
+    X == Y,
+    extraire(P, Y, P), !.
+
+extraire([X|P], Y, [X|P2]) :-
+    X \== Y,
+    extraire(P, Y, P2), !.
+
 
 % Unification sur la liste P en appliquant la strategie S
 % Cas : liste est vide
