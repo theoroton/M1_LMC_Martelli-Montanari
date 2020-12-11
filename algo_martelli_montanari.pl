@@ -380,149 +380,169 @@ union_systemes([X|L], S2,[X|Q]) :- union_systemes(L, S2, Q).
 
 
 % ------------------------------------------------------------------------
-% Prédicat unifie(P) :
-% Résout le système d'équation P.
+% Prédicat choix_strategie(S, P, Q, E, R) :
+% Choisis la stratégie à utiliser en fonction de S. Transforme le
+% système P en système Q et indique l'équation E à traiter ainsi que la
+% règle R à appliquer sur cette équation.
 
 /*
- * Si le système P est vide, on a réussi à unfier (Prolog se
+ * Choix de la stratégie où l'on sélectionne la première équation
+ * du système P.
+ * S : choix premier.
+ * P : système d'équations.
+ * Q : système d'équations transformée.
+ * E : équation à traitée.
+ * R : règle à appliquer à E.
+ */
+choix_strategie(choix_premier, P, Q, E, R) :-
+    choix_premier(P, Q, E, R), !.
+
+/*
+ * Choix de la stratégie où l'on sélectionne l'équation de plus
+ * grand poids du système P.
+ * S : choix pondere.
+ * P : système d'équations.
+ * Q : système d'équations transformée.
+ * E : équation à traitée.
+ * R : règle à appliquer à E.
+ */
+choix_strategie(choix_pondere, P, Q, E, R) :-
+    choix_pondere(P, Q, E, R), !.
+
+
+% ------------------------------------------------------------------------
+% Prédicat choix(P, Q, E ,R) :
+% Trouve l'équation E à traiter ainsi que la règle R à appliquer à cette
+% équation. Transforme le système P en système Q en enlevant l'équation
+% E à traiter.
+
+/*
+ * Choix de l'équation avec la stratégie premier. Sélectionne la
+ * règle pouvant être appliquée à la première équation.
+ * P : système d'équations (X tête du système et L reste du système).
+ * Q : système d'équations transformée.
+ * E : équation à traiter.
+ * R : règle à appliquer à E.
+ */
+choix_premier([E|L], L, E, R) :-
+    regle(E, R), !.
+
+/*
+ * Choix de l'équation avec la stratégie pondere. Sélectionne la
+ * première équation à laquelle on peut appliquer la règle de plus
+ * grand poids. Transforme ensuite le système P en système Q en
+ * enlevant l'équation E trouvée.
+ * P : système d'équations.
+ * Q : système d'équations transformée.
+ * E : équation à traiter.
+ * R : règle à appliquer à E.
+ */
+choix_pondere(P, Q, E, R) :-
+    equation_a_traitee(P, E, R),
+    transformer_systeme(P, E, Q), !.
+
+% ------------------------------------------------------------------------
+% Prédicat poids(R, P) :
+% Donne le poids P associé à une règle R.
+poids(expand, 0).
+poids(decompose, 1).
+poids(orient, 2).
+poids(clean, 3).
+poids(rename, 3).
+poids(simplify, 3).
+poids(fail, 4).
+poids(clash, 4).
+poids(check, 4).
+
+% ------------------------------------------------------------------------
+% Prédicat equation_a_traitee(P, E, R) :
+% Trouve l'équation E à traiter d'un système P avec la règle R à lui
+% appliquer dans le choix pondere.
+
+/*
+ * S'il n'y a plus qu'une équation dans P, on la renvoie ainsi
+ * que la règle qui peut lui être appliquée.
+ * P : système d'une équation.
+ * E : équation à traiter.
+ * R : règle à utiliser sur l'équation E.
+ */
+equation_a_traitee([E], E, R) :-
+    regle(E, R), !.
+
+/*
+ * Compare une équation N et une équation N+1 et détermine laquelle
+ * des 2 est plus prioritaire en fonction du poids de la règle qui
+ * lui est associée. Recommence l'opération avec l'équation choisie
+ * et le reste des équations de P.
+ * P : système d'équations (E1 Nième équation, E2 (N+1)ième équation,
+ * L reste des équations).
+ * E : équation à traiter.
+ * R : règle à utiliser sur l'équation E.
+ */
+equation_a_traitee([E1,E2|L], E, R) :-
+    regle(E1, R1),
+    regle(E2, R2),
+    poids(R1, P1),
+    poids(R2, P2),
+    (  P1 >= P2
+    -> equation_a_traitee([E1|L], E, R), !
+    ;  equation_a_traitee([E2|L], E, R), !
+     ).
+
+% ------------------------------------------------------------------------
+% Prédicat transformer_systeme(P, E, Q) :
+% Trouve l'équation E du système P, la retire de P et indique le
+% résultat dans Q.
+
+/*
+ * Si le système est vide, on renvoit un système vide.
+ * P : système vide.
+ * Q : système vide.
+ */
+transformer_systeme([], _, []) :- !.
+
+/*
+ * Si l'équation en tête de P est égal à l'équation E, on retourne le
+ * reste de P concaténé à toutes les équations précédant E dans P. Sinon
+ * on relance le prédicat avec le reste des équations de P.
+ * P : système d'équations (X première équation de P, L reste des
+ * équations de P).
+ * E : équation à trouver.
+ * Q : système d'équations sans l'équation E.
+ */
+transformer_systeme([X|L], E, Q) :-
+    (   X == E
+    ->  Q = L, !
+    ;   transformer_systeme(L, E, L2),
+        Q = [E|L2]).
+
+% ------------------------------------------------------------------------
+% Prédicat unifie(P, S) :
+% Résout le système d'équation P avec la stratégie S.
+
+/*
+ * Si le système P est vide, on a réussi à unifier (Prolog se
  * charge d'écrire le mgu).
  * P : système vide.
  */
-unifie([]) :- nl, !.
+unifie([], _) :- nl, !.
 
 /*
  * Si le système P est égal à bottom, alors on ne peut pas l'unifier.
  * P : bottom.
  */
-unifie(bottom) :- nl, fail, !.
+unifie(bottom, _) :- nl, fail, !.
 
 /*
- * Trouve la règle pouvant être appliqué à E (tête du système P) et
- * applique cette règle à E. Reduit prend le reste L (reste du système
- * P) et transforme ce système en système Q. Appelle ensuite unifie sur
- * le nouveau système Q.
+ * Trouve l'équation E à traiter et la règle R à lui appliquer en
+ * fonction de la stratégie S. Transforme le système P en système P2,
+ * qui contient toutes les équations de P sans l'équation E.
+ * Applique la règle R à l'équation E et transforme le système P2 en
+ * système Q. Appelle ensuite unifie sur le nouveau système Q.
  * P : système à unifier.
+ * S : stratégie à utiliser.
  */
-unifie([E|L]) :-
-    regle(E, R),
-    reduit(R, E, L, Q),
-    unifie(Q).
-
-% ------------------------------------------------------------------------
-% Question 2
-% La strategie qui choisit la première équation de la liste
-
-% Strategie du choix de la première équation de la liste
-
-% Cas : liste est vide
-choix_premier([],_,_,_) :- nl, write('Premier : vide'), !.
-
-choix_premier(bottom, _, _, _) :- nl, write('Premier: No'), !, false.
-
-
-% Dans ce cas on applique la règle R sur la première équation de la
-% liste E.
-% Ensuite on applique la réduction sur E avec la règle R.
-% A la fin on fait un appel récursif d'unification sur la système Q.
-choix_premier([E|P], Q, E, R) :-
-    regle(E, R),
-    write(system: [E|P]), nl,
-    write(R: E), nl,
-    reduit(R, E, P, Q),
-    unifie(Q).
-
-% ------------------------------------------------------------------------
-% Strategie du choix de l'équation qui privilege les règles qui ont le
-% poids le plus élevé
-%
-% Cas : liste est vide
-choix_pondere([], Q, _, _) :-
-    nl, writeln('resultat:'+ Q), !.
-
-% Choix dans la systeme P une equation E avec sa regle R qui a le poids
-% le plus eleve.
-% Ensuite on extrait de P cette equation E. pour donner le systeme Q
-choix_pondere(P, Q, E, R) :-
-    poids_max(P, R, E),
-    extraire(P, E, P2),
-    write(system: [E|P]), nl,
-    write(R: E), nl,
-    reduit(R, E, P2, Q),
-    choix_pondere(P2, Q, _, _).
-
-% Trouver l'equation E avec la regle R du poids maximal
-% Cas : une element dans la liste et donc son poids est maximal
-poids_max([X], R, X) :-
-    regle(X, R), !.
-
-% On recupere les regles de la premiere et deuxieme equations.
-% On compare les poids de ces deux regles.
-% Si la premiere regle a le poids plus grand ou egale de la deuxieme,
-% on appele le predicat sur la liste et premiere equeation, mais
-% sans la deuxieme et a l'inverse.
-poids_max([X,Y|P], R, E) :-
-    regle(X, R1),
-    poids(R1, A1),
-    regle(Y, R2),
-    poids(R2, A2),
-    (  A1 >= A2
-    -> poids_max([X|P], R, E), !
-    ;  poids_max([Y|P], R, E), !
-     ).
-
-% le predicat qui donne le poids pour la regle R correspondant
-poids(expand,0).
-poids(decompose,1).
-poids(orient,2).
-poids(rename,3).
-poids(simplify,3).
-poids(clash,4).
-poids(check,4).
-
-% Extraction d'element de la liste
-% Cas : liste est vide
-extraire([], _, []) :- !.
-
-% Soit on trouve l'element X dans la liste, alors renvoit de la liste
-% sans X.
-% Soit la tete de la liste est differente de X, alors renvoit de la
-% liste avec element X, mais qui est place toute a la fin de la liste
-extraire([X|P], Y, P) :-
-    X == Y,
-    extraire(P, Y, P), !.
-
-extraire([X|P], Y, [X|P2]) :-
-    X \== Y,
-    extraire(P, Y, P2), !.
-
-
-% Unification sur la liste P en appliquant la strategie S
-% Cas : liste est vide
-unifie([], _) :- nl, write('Deja unifie'), !.
-
-% Application de la strategie selon de la choix
 unifie(P, S) :-
-    (   S == choix_premier
-    ->  choix_premier(P, _, _, _)
-    ;    choix_pondere(P, _, _, _)).
-
-interface :-
-    writeln('Unification de Martelli-Montanari'),
-    nl,
-    defEquation(P),
-    defStrategie(S),
-    unifie(P, S).
-
-defEquation(P) :-
-    writeln('Ecrivez l\'equation a unifie'),
-    read(P), nl.
-
-defStrategie(S) :-
-    writeln('Ecrivez le numero de strategie a utiliser :'),
-    writeln('1 pour le choix premier'),
-    writeln('2 pour le choix pondere'),
-    read(N),
-    choix(N, S), nl.
-
-choix(1, choix_premier).
-choix(2, choix_pondere).
+    choix_strategie(S, P, P2, E, R),
+    reduit(R, E, P2, Q),
+    unifie(Q, S), !.
