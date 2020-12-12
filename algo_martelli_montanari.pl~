@@ -385,7 +385,7 @@ union_systemes([X|L], S2,[X|Q]) :- union_systemes(L, S2, Q).
 % regle R a appliquer sur cette equation.
 
 /*
- * Choix de la strategie où l'on selectionne la premiere equation
+ * Choix de la strategie ou l'on selectionne la premiere equation
  * du systeme P.
  * S : choix premier.
  * P : systeme d'equations.
@@ -397,7 +397,7 @@ choix_strategie(choix_premier, P, Q, E, R) :-
     choix_premier(P, Q, E, R), !.
 
 /*
- * Choix de la strategie où l'on selectionne l'equation de plus
+ * Choix de la strategie ou l'on selectionne l'equation de plus
  * grand poids du systeme P.
  * S : choix pondere.
  * P : systeme d'equations.
@@ -409,7 +409,7 @@ choix_strategie(choix_pondere, P, Q, E, R) :-
     choix_pondere(P, Q, E, R), !.
 
 /*
- * Choix de la strategie où l'on selectionne la derniere equation
+ * Choix de la strategie ou l'on selectionne la derniere equation
  * du systeme P.
  * S : choix dernier.
  * P : systeme d'equations.

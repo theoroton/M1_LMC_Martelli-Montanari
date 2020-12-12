@@ -687,7 +687,7 @@ strat(3, choix_dernier).
  * A : affichage a utiliser.
  */
 affichage(A) :-
-    writeln("Voulez vous activer la trace des etapes ? (o/n) :"),
+    writeln("Voulez vous activer la trace des etapes ? :"),
     writeln('1: Oui'),
     writeln('2: Non'),
     read(A),
