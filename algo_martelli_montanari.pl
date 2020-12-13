@@ -193,8 +193,6 @@ occur_check_args(V, T, 1) :-
 	arg(1, T, Arg), !,
 	occur_check(V, Arg).
 
-% Predicat occur_check_args: regarde si V est dans un des arguments
-% de T (NbArgs : nombre d'arguments de T).
 /*
  * Test si V est dans un des arguments de T. (on verifie dans
  * tous les arguments de T si V s'y trouve).
@@ -223,7 +221,7 @@ occur_check_args(V, T, NbArgs) :-
 reduit(clean, _, P, P) :- !.
 
 /*
- * Substitue X part T, et renvoie le système P sans l'equation traitee
+ * Substitue X par T, et renvoie le système P sans l'equation traitee
  * (X et T sont des variables).
  * R : regle rename.
  * E : premiere equation de P.
@@ -600,97 +598,3 @@ trace_unif(P, S) :-
     set_echo,
     echo("\n"),
     unifie(P,S).
-
-
-% ------------------------------------------------------------------------
-% Interface en lignes de commande pour executer l'algorithme.
-
-/*
- * Demande a l'utilisateur d'entrer un systeme d'equations, de
- * choisir la strategie a utiliser et s'il activer la trace ou
- * non.
- */
-algorithme_martelli() :-
-    writeln("=== Algorithme d'unification de Martelli-Montanari ==="), nl,
-
-    systeme_equations(P), nl,
-    strategie(S), nl,
-    affichage(A), nl,
-
-    writeln("=== Debut de l'algorithme ==="), nl,
-    write("Systeme : "), writeln(P),
-
-    (   A == 1
-    ->  trace_unif(P, S)
-    ;   unif(P, S)).
-
-
-/*
- * Demande a l'utilisateur le systeme d'equations qu'il souhaite
- * unifier.
- * P : systeme d'equations a unifier.
- */
-systeme_equations(P) :-
-    writeln("Entrez le systeme d'equations a unifier :"),
-    writeln("(Systeme de la forme [S1 ?= T1, ... ,SN ?= TN].)"),
-    read(P),
-    is_list(P),
-    verifier_equations(P).
-
-
-% Verifie le systeme d'equations
-
-/*
- * Si le systeme est vide, alors on a atteint la fin.
- * P : systeme d'equations a verifier.
- */
-verifier_equations([]).
-
-/*
- * Si une equation n'est pas de la forme Sn ?= Tn alors le
- * systeme n'est pas bon.
- * P : systeme d'equations a verifier.
- */
-verifier_equations([E|L]) :-
-    split(E, S, T),
-    (   E == S ?= T
-    ->  verifier_equations(L)
-    ;   write("Systeme incorrect"), fail, !).
-
-
-/*
- * Demande a l'utilisateur la strategie qu'il souhaite utiliser.
- * Si l'entree donnee n'est pas bonne, alors il y a une erreur.
- * S : strategie a utiliser.
- */
-strategie(S) :-
-    writeln('Ecrivez le numero de strategie a utiliser :'),
-    writeln('1: choix premier'),
-    writeln('2: choix pondere'),
-    writeln('3: choix dernier'),
-    read(N),
-    (   integer(N)
-    -> ( N >= 1, 3 >= N
-       ->  strat(N, S)
-       ;   write("Strategie incorrecte"), fail, !)
-    ;   write("Ce n'est pas un entier"), fail, !).
-
-% Numero des strategies.
-strat(1, choix_premier).
-strat(2, choix_pondere).
-strat(3, choix_dernier).
-
-
-/*
- * Demande a l'utilisateur s'il veut activer la trace des regles.
- * Si l'entree donnee n'est pas bonne, alors il y a une erreur.
- * A : affichage a utiliser.
- */
-affichage(A) :-
-    writeln("Voulez vous activer la trace des etapes ? :"),
-    writeln('1: Oui'),
-    writeln('2: Non'),
-    read(A),
-    (   integer(A), A >= 1, 2 >= A
-    ->  !
-    ;   write("Reponse incorrecte"), fail, !).
